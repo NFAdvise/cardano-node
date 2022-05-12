@@ -14,14 +14,17 @@ EOF
 }
 
 analyse() {
-local dump_logobjects= preflt_jq= filters=() aws=
-local dump_logobjects= dump_slots_raw= dump_slots= dump_chain_raw= dump_chain= dump_mach_views=
+local preflt_jq= filters=() aws=
+local dump_logobjects= dump_machviews= dump_chain_raw= dump_chain= dump_slots_raw= dump_slots=
 while test $# -gt 0
 do case "$1" in
-       --dump-logobjects )  dump_logobjects='true';;
-       --prefilter-jq )     preflt_jq='true';;
-       --filters )          analysis_set_filters "base,$2"; shift;;
-       --no-filters )       analysis_set_filters "";;
+       --dump-logobjects | -lo )  dump_logobjects='true';;
+       --dump-machviews  | -mw )  dump_machviews='true';;
+       --dump-chain-raw  | -cr )  dump_chain_raw='true';;
+       --dump-chain      | -c )   dump_chain='true';;
+       --prefilter-jq )           preflt_jq='true';;
+       --filters )                analysis_set_filters "base,$2"; shift;;
+       --no-filters )             analysis_set_filters "";;
        * ) break;; esac; shift; done
 
 if curl --connect-timeout 0.5 http://169.254.169.254/latest/meta-data >/dev/null 2>&1
@@ -35,7 +38,7 @@ else locli_rts_args=()
      echo "{ \"aws\": false }"
 fi
 
-local op=${1:-$(usage_analyse)}; shift
+local op=${1:-standard}; if test $# != 0; then shift; fi
 
 case "$op" in
     # 'read-mach-views' "${logs[@]/#/--log }"
@@ -67,7 +70,7 @@ case "$op" in
                  'dump-logobjects'; fi)
 
                'build-mach-views'
-               $(if test -n "$dump_mach_views"; then echo \
+               $(if test -n "$dump_machviews"; then echo \
                  'dump-mach-views'; fi)
 
                'build-chain'
