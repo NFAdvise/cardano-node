@@ -58,10 +58,11 @@ fixed:                   PROFILE = fixed-${ERA}
 fixed:                   ARGS += --arg 'autoStartCluster' true
 forge-stress:            PROFILE = forge-stress-${ERA}
 forge-stress-plutus:     PROFILE = forge-stress-plutus-${ERA}
-forge-stress-newtracing: PROFILE = forge-stress-newtracing-${ERA}
+forge-stress-oldtracing: PROFILE = forge-stress-oldtracing-${ERA}
 quick:                   PROFILE = quick-${ERA}
-forge-stress forge-stress-plutus forge-stress-newtracing quick: ARGS += --arg 'workbenchDevMode' true
-shell-dev cluster-shell-dev cluster-shell-trace cluster-shell-dev-trace fixed forge-stress forge-stress-plutus forge-stress-newtracing quick: shell
+quick-oldtracing:        PROFILE = quick-oldtracing-${ERA}
+forge-stress forge-stress-plutus forge-stress-oldtracing quick quick-oldtracing: ARGS += --arg 'workbenchDevMode' true
+shell-dev cluster-shell-dev cluster-shell-trace cluster-shell-dev-trace fixed forge-stress forge-stress-plutus forge-stress-oldtracing quick quick-oldtracing: shell
 
 test-smoke: smoke ## Build the 'workbench-smoke-test', same as the Hydra job
 smoke:
