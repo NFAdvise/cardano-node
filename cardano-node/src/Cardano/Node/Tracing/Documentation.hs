@@ -4,6 +4,7 @@
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE GADTs #-}
 {-# LANGUAGE QuantifiedConstraints #-}
+{-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE RecordWildCards #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE StandaloneDeriving #-}
@@ -381,31 +382,42 @@ docTracers configFileName outputFileName _ _ _ = do
     mempoolTrDoc <- documentTracer trConfig mempoolTr
       (docMempool :: Documented (TraceEventMempool blk))
 
-    forgeTr    <- mkCardanoTracer
+    forgeTr'    <- mkCardanoTracer
                 trBase trForward mbTrEKG
                 "Forge"
                 namesForForge
                 severityForge
                 allPublic
+    let forgeTr =
+          contramap (\case
+                        Left  x -> Left x
+                        Right (Consensus.TraceLabelCreds _ x) -> Right x)
+                    forgeTr'
 
     -- TODO Tracers docforgeThreadStatsTr?
-    forgeThreadStatsTr <- mkCardanoTracer'
+    forgeThreadStatsTr' <- mkCardanoTracer'
                 trBase trForward mbTrEKG
                 "ForgeStats"
                 namesForForge
                 severityForge
                 allPublic
                 forgeThreadStats
+    let forgeThreadStatsTr =
+          contramap (\case
+                        Left  x -> Left x
+                        Right (Consensus.TraceLabelCreds _ x) -> Right x)
+                    forgeThreadStatsTr'
+
     configureTracers trConfig docForge [forgeTr, forgeThreadStatsTr]
     forgeTrDoc <- documentTracer trConfig forgeTr
       (docForge :: Documented
-        (Either (Consensus.TraceLabelCreds (Consensus.TraceForgeEvent blk))
+        (Either (Consensus.TraceForgeEvent blk)
                 (Consensus.TraceLabelCreds TraceStartLeadershipCheckPlus)))
 
     forgeThreadStatsTrDoc <- documentTracer trConfig forgeThreadStatsTr
       (docForgeStats :: Documented
         (Either
-           (Consensus.TraceLabelCreds (Consensus.TraceForgeEvent blk))
+           (Consensus.TraceForgeEvent blk)
            (Consensus.TraceLabelCreds TraceStartLeadershipCheckPlus)))
 
     blockchainTimeTr   <- mkCardanoTracer
